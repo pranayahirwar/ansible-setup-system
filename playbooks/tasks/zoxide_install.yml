@@ -1,0 +1,37 @@
+- name: Check if zoxide is installed
+  ansible.builtin.command: which zoxide
+  register: zoxide_installed
+  changed_when: False # Read Error handling in playbooks docs
+  failed_when: False  # Read Error handling in playbooks docs
+  tags: 
+    - zoxide
+
+- name: Install zoxide
+  shell: curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+  when: zoxide_installed.rc == 1
+  # rc=0 == success | rc=1 == general error not specific but failure has occured
+  tags: 
+    - zoxide
+
+- name: Add ~/.local/bin to PATH
+  ansible.builtin.lineinfile:
+    path: "~/.bashrc"
+    line: 'export PATH="$PATH:~/.local/bin"'
+    state: present
+  when: zoxide_installed.rc == 1
+  tags: 
+    - zoxide
+
+
+- name: Append zoxide init to .bashrc
+  blockinfile:
+    path: "~/.bashrc"
+    block: |
+      #######################################
+      # ZOXIDE SETUP
+      #######################################
+      eval "$(zoxide init --cmd cd bash)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR ZOXIDE SETUP"
+  when: zoxide_installed.rc == 1
+  tags: 
+    - zoxide

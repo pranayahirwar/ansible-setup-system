@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  vars:
+    var_bashrc_path: "{{ ansible_env.HOME }}/.bashrc"
+    var_user_running_this_playbook: "{{ ansible_env.USER }}"
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: true
+      tags: 
+        - apt
+
+    - name: Setting up Aliases
+      include_tasks: tasks/bash_alias.yml
+      tags: 
+        - aliases
+
+    - name: Running zoxide installation tasks
+      include_tasks: tasks/zoxide_install.yml
+      tags: 
+        - zoxide
+
+    - name: Running docker installation tasks
+      include_tasks: tasks/docker.yml
+      tags: 
+        - docker
+...

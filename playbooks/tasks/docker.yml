@@ -1,0 +1,39 @@
+- name: Check if Docker is installed
+  ansible.builtin.stat:
+    path: /usr/bin/docker
+  register: docker_installed
+  tags: 
+    - docker
+
+- name: Install Docker
+  ansible.builtin.command: curl -fsSL https://get.docker.com -o install-docker.sh
+  when: docker_installed.stat.exists == false
+  tags: 
+    - docker
+
+- name: Execute Docker installation script
+  ansible.builtin.command: sh install-docker.sh
+  become: true
+  become_user: root
+  when: docker_installed.stat.exists == false
+  tags: 
+    - docker
+
+- name: docker is installed removing install-docker.sh file
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/install-docker.sh"
+    state: absent
+  when: docker_installed.stat.exists == false
+  tags: 
+    - docker
+
+- name: Add current user to Docker group
+  user:
+    name: "{{ var_user_running_this_playbook }}"
+    groups: docker
+    append: yes
+  become: true
+  become_user: root
+  when: docker_installed.stat.exists == true
+  tags: 
+    - docker
